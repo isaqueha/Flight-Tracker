@@ -1,0 +1,15 @@
+import Globe from "./components/Globe";
+import Sidebar from "./components/Sidebar";
+
+export default function App() {
+  return (
+    <div className="flex w-screen h-screen bg-gray-950 text-white">
+      <div className="flex w-screen h-screen relative">
+        <Globe />
+      </div>
+      <div className="w-96 border-l border-gray-800 bg-gray-900/80 p-4 overflow-y-auto">
+        <Sidebar />
+      </div>
+    </div>
+  );
+}

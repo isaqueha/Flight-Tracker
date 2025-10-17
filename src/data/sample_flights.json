@@ -1,0 +1,20 @@
+[
+  {
+    "id": "AC123",
+    "airline": "Air Canada",
+    "from": { "lat": 45.47, "lon": -73.74 },
+    "to": { "lat": 51.47, "lon": -0.45 }
+  },
+  {
+    "id": "DL456",
+    "airline": "Delta",
+    "from": { "lat": 33.64, "lon": -84.43 },
+    "to": { "lat": 40.64, "lon": -73.78 }
+  },
+  {
+    "id": "UA789",
+    "airline": "United",
+    "from": { "lat": 37.62, "lon": -122.38 },
+    "to": { "lat": 25.79, "lon": -80.29 }
+  }
+]

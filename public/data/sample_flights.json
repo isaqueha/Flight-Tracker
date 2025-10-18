@@ -1,0 +1,23 @@
+[
+  {
+    "id": "AC123",
+    "airline": "Air Canada",
+    "from": { "lat": 45.47, "lon": -73.74 },
+    "to": { "lat": 51.47, "lon": -0.45 },
+    "currentPosition": { "lat": 48.85, "lon": 2.35 }
+  },
+  {
+    "id": "DL456",
+    "airline": "Delta",
+    "from": { "lat": 33.64, "lon": -84.43 },
+    "to": { "lat": 40.64, "lon": -73.78 },
+    "currentPosition": { "lat": 39.0, "lon": -80.0 }
+  },
+  {
+    "id": "UA789",
+    "airline": "United",
+    "from": { "lat": 37.62, "lon": -122.38 },
+    "to": { "lat": 25.79, "lon": -80.29 },
+    "currentPosition": { "lat": 30.0, "lon": -100.0 }
+  }
+]

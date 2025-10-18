@@ -1,59 +1,153 @@
-import { useMemo } from "react";
-import * as THREE from "three";
+import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { Html, useFBX } from "@react-three/drei";
+import { latLonToVec3 } from "../helpers/geo";
 import useFlightsData from "../hooks/useFlights";
 
-const EARTH_RADIUS = 1;
 
-export default function FlightsLayer() {
+export default function FlightArcs({ }) {
   const flights = useFlightsData();
+  const groupRef = useRef();
+  const [hoveredFlight, setHoveredFlight] = useState(null); // 👈 track hovered flight
 
-  const lines = useMemo(() => {
-    const group = new THREE.Group();
-    flights.forEach((f) => {
-      const { from, to } = f;
-      const start = latLonToVec3(from.lat, from.lon, EARTH_RADIUS);
-      const end = latLonToVec3(to.lat, to.lon, EARTH_RADIUS);
+  // const airplane = useFBX("/PlaneModel/source/Cute Airplane.fbx");
 
-      const distance = start.angleTo(end); // radians between points on sphere
-      const altitude = 0.05 + distance * 0.25; // higher curve for distant flights
+  // // Adjust scale/orientation (FBX models are often large or rotated oddly)
+  // airplane.scale.setScalar(0.00015);
+  // airplane.rotation.x = Math.PI ; // Fix nose orientation
+  // airplane.rotation.z = Math.PI / 2;     // Fix upside-down
+  // airplane.traverse((child) => {
+  //   if (child.isMesh) {
+  //     child.material = new THREE.MeshStandardMaterial({
+  //       color: 0xffffff,
+  //       metalness: 0.3,
+  //       roughness: 0.4,
+  //     });
+  //   }
+  // });
+
+  // Precompute curve geometries + materials
+  const arcs = useMemo(() => {
+    return flights.map((f) => {
+      const start = latLonToVec3(f.from.lat, f.from.lon, 1);
+      const end = latLonToVec3(f.to.lat, f.to.lon, 1);
+
+      // curved midpoint (raised)
+      const distance = start.angleTo(end);
+      const altitude = 0.05 + distance * 0.25;
       const mid = new THREE.Vector3()
         .addVectors(start, end)
         .normalize()
-        .multiplyScalar(EARTH_RADIUS * (1 + altitude));
+        .multiplyScalar(1 + altitude);
 
-      // Create smooth curve
       const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-      const points = curve.getPoints(64);
-
+      const points = curve.getPoints(128);
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({
-        color: 0x00ffff,
+
+      // Gradient line material using shader
+      const material = new THREE.ShaderMaterial({
         transparent: true,
-        opacity: 0.7,
-        linewidth: 2,
+        uniforms: {
+          time: { value: 0 },
+          color1: { value: new THREE.Color("#00ffff") },
+          color2: { value: new THREE.Color("#ff00ff") },
+        },
+        vertexShader: `
+          varying float vProgress;
+          void main() {
+            vProgress = position.y;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float time;
+          uniform vec3 color1;
+          uniform vec3 color2;
+          varying float vProgress;
+
+          void main() {
+            float trail = smoothstep(0.0, 0.8, fract(vProgress + time));
+            vec3 color = mix(color1, color2, vProgress);
+            gl_FragColor = vec4(color, trail * 0.9);
+          }
+        `,
       });
 
       const line = new THREE.Line(geometry, material);
-      group.add(line);
-    });
+      line.userData = { f, curve };
 
-    return group;
+      // Clone airplane model for each flight
+      // const plane = airplane.clone();
+      // plane.position.copy(start);
+      // line.add(plane);
+
+      return line;
+    });
   }, [flights]);
 
-  useFrame(() => {
-    // lines.rotation.y += 0.0005;
+   // ✅ Animate flight progress + plane movement
+  useFrame((state, delta) => {
+    const t = (state.clock.elapsedTime * 0.05) % 1;
+    groupRef.current.children.forEach((line, i) => {
+      const { curve } = line.userData;
+      const progress = (t + i * 0.1) % 1;
+      const pos = curve.getPoint(progress);
+      const tangent = curve.getTangent(progress);
+
+      const plane = line.children[0];
+      if (plane) {
+        plane.position.copy(pos);
+        plane.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          tangent.normalize()
+        );
+      }
+
+      // Move gradient animation
+      line.material.uniforms.time.value += delta * 0.5;
+    });
   });
 
-  return <primitive object={lines} />;
-}
+  return (
+    <group ref={groupRef}>
+      {arcs.map((line, i) => {
+        const flight = line.userData.f;
+        const midPoint = line.userData.curve.getPoint(0.5);
 
-function latLonToVec3(lat, lon, radius = 1) {
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lon + 180) * (Math.PI / 180);
-  return new THREE.Vector3(
-    -radius * Math.sin(phi) * Math.cos(theta),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta)
+        return (
+        <primitive
+          key={i}
+          object={line}
+           onPointerOver={(e) => {
+            e.stopPropagation();
+            setHoveredFlight(flight); // 👈 set current hovered flight
+            line.material.uniforms.color1.value.set("#ffffff");
+          }}
+          onPointerOut={(e) => {
+            e.stopPropagation();
+            setHoveredFlight(null); // 👈 clear hover
+            line.material.uniforms.color1.value.set("#00ffff");
+          }}
+          onClick={() => onFlightSelect(flight)}
+        >
+           {/* Render tooltip only if this is the hovered flight */}
+            {hoveredFlight === flight && (
+              <Html
+                transform
+                scale={0.33}
+                distanceFactor={2.0}
+                position={midPoint}
+              >
+                <div className="bg-black/70 text-white text-xs px-2 py-1 rounded-md shadow border border-white/20">
+                  ✈ {flight.airline}<br />
+                  {flight.from.code} → {flight.to.code}
+                </div>
+              </Html>
+            )}
+          </primitive>
+        );
+      })}
+    </group>
   );
 }

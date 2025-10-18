@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { useEffect, useRef } from "react";
-import sampleData from "../data/sample_flights.json";
+import sampleData from "../../public/data/sample_flights.json";
 
 export default function Chart() {
   const ref = useRef();

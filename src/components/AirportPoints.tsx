@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
+import { latLonToVec3 } from "../helpers/geo";
 
 /**
  * AirportPoints
@@ -153,16 +154,4 @@ export default function AirportPoints({
       })}
     </group>
   );
-}
-
-/** Helper: convert lat/lon to a Vector3 on a sphere centered at origin.
- *  lat: degrees, lon: degrees, radius: number
- */
-function latLonToVec3(lat, lon, radius = 1) {
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lon + 180) * (Math.PI / 180);
-  const x = -radius * Math.sin(phi) * Math.cos(theta);
-  const y = radius * Math.cos(phi);
-  const z = radius * Math.sin(phi) * Math.sin(theta);
-  return new THREE.Vector3(x, y, z);
 }

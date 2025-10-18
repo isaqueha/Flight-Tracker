@@ -4,10 +4,10 @@ import Sidebar from "./components/SidePanel";
 export default function App() {
   return (
     <div className="flex w-screen h-screen bg-gray-950 text-white">
-      <div className="flex w-screen h-screen relative">
+      <div className="flex w-full h-full">
         <Globe />
       </div>
-      <div className="w-96 border-l border-gray-800 bg-gray-900/80 p-4 overflow-y-auto">
+      <div className="w-[60rem] border-l border-gray-800 bg-gray-900/80 p-4 overflow-y-auto">
         <Sidebar />
       </div>
     </div>

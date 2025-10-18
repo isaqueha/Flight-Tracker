@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import useFlightsData from "../hooks/useFlightsData";
+import useFlightsData from "../hooks/useFlights";
+
+const EARTH_RADIUS = 1;
 
 export default function FlightsLayer() {
   const flights = useFlightsData();
@@ -10,24 +12,37 @@ export default function FlightsLayer() {
     const group = new THREE.Group();
     flights.forEach((f) => {
       const { from, to } = f;
-      const start = latLonToVec3(from.lat, from.lon);
-      const end = latLonToVec3(to.lat, to.lon);
-      const curve = new THREE.QuadraticBezierCurve3(
-        start,
-        start.clone().add(end).multiplyScalar(0.5).setLength(1.05),
-        end
-      );
-      const points = curve.getPoints(50);
+      const start = latLonToVec3(from.lat, from.lon, EARTH_RADIUS);
+      const end = latLonToVec3(to.lat, to.lon, EARTH_RADIUS);
+
+      const distance = start.angleTo(end); // radians between points on sphere
+      const altitude = 0.05 + distance * 0.25; // higher curve for distant flights
+      const mid = new THREE.Vector3()
+        .addVectors(start, end)
+        .normalize()
+        .multiplyScalar(EARTH_RADIUS * (1 + altitude));
+
+      // Create smooth curve
+      const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+      const points = curve.getPoints(64);
+
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+      const material = new THREE.LineBasicMaterial({
+        color: 0x00ffff,
+        transparent: true,
+        opacity: 0.7,
+        linewidth: 2,
+      });
+
       const line = new THREE.Line(geometry, material);
       group.add(line);
     });
+
     return group;
   }, [flights]);
 
   useFrame(() => {
-    lines.rotation.y += 0.0005;
+    // lines.rotation.y += 0.0005;
   });
 
   return <primitive object={lines} />;

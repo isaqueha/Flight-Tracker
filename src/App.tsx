@@ -1,5 +1,5 @@
 import Globe from "./components/Globe";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/SidePanel";
 
 export default function App() {
   return (

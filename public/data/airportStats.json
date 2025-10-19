@@ -1,0 +1,4 @@
+{
+  "YUL": { "passengers": [5.2, 5.6, 6.0, 7.1, 6.8, 8.0, 9.1, 8.5, 7.9, 7.0, 5.8, 4.9], "popularDestinations": ["YYZ", "CDG", "JFK", "LAX", "FRA"] },
+  "JFK": { "passengers": [7.1, 7.5, 8.1, 9.2, 8.7, 10.1, 11.0, 10.8, 9.3, 8.5, 7.7, 6.0], "popularDestinations": ["LHR", "LAX", "CDG", "MIA", "SFO"] }
+}

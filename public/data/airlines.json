@@ -1,0 +1,8 @@
+[
+  { "airline": "Delta", "aircraft": "A320", "count": 120 },
+  { "airline": "Delta", "aircraft": "B737", "count": 80 },
+  { "airline": "United", "aircraft": "A320", "count": 95 },
+  { "airline": "United", "aircraft": "B787", "count": 35 },
+  { "airline": "Air Canada", "aircraft": "A220", "count": 25 },
+  { "airline": "Air Canada", "aircraft": "B777", "count": 18 }
+]

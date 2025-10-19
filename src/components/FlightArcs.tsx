@@ -4,12 +4,13 @@ import * as THREE from "three";
 import { Html, useFBX } from "@react-three/drei";
 import { latLonToVec3 } from "../helpers/geo";
 import useFlightsData from "../hooks/useFlights";
-
+import { useAppContext } from "../context/AppContext";
 
 export default function FlightArcs({ }) {
   const flights = useFlightsData();
   const groupRef = useRef();
   const [hoveredFlight, setHoveredFlight] = useState(null); // 👈 track hovered flight
+  const { setSelectedItem } = useAppContext();
 
   // const airplane = useFBX("/PlaneModel/source/Cute Airplane.fbx");
 
@@ -129,7 +130,7 @@ export default function FlightArcs({ }) {
             setHoveredFlight(null); // 👈 clear hover
             line.material.uniforms.color1.value.set("#00ffff");
           }}
-          onClick={() => onFlightSelect(flight)}
+          onClick={() => setSelectedItem({ type: "flight", data: flight })}
         >
            {/* Render tooltip only if this is the hovered flight */}
             {hoveredFlight === flight && (

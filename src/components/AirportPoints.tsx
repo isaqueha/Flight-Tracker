@@ -4,6 +4,9 @@ import * as THREE from "three";
 import { Html } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { latLonToVec3 } from "../helpers/geo";
+import { useAppContext } from "../context/AppContext";
+import airportStats from "../../public/data/airportStats.json";
+
 
 /**
  * AirportPoints
@@ -12,18 +15,16 @@ import { latLonToVec3 } from "../helpers/geo";
  * Props:
  *  - src (string): path to airports json (defaults to '/data/airports.json')
  *  - markerRadius (number): sphere radius in world units (default 0.008)
- *  - onAirportClick (fn): callback when airport clicked (airport object)
  */
 export default function AirportPoints({
   src = "/data/airports.json",
   markerRadius = 0.008,
-  onAirportClick = () => {},
 }) {
   const [airports, setAirports] = useState([]);
   const [hovered, setHovered] = useState(null);
   const [selectedIcao, setSelectedIcao] = useState(null);
   const groupRef = useRef();
-  const { camera } = useThree();
+  const { setSelectedItem } = useAppContext();
 
   useEffect(() => {
     let mounted = true;
@@ -104,7 +105,8 @@ export default function AirportPoints({
             onClick={(e) => {
               e.stopPropagation();
               setSelectedIcao(a.icao);
-              onAirportClick(a);
+              setSelectedItem({ type: "airport", data: a });
+              console.log("Selected airport:", a, airportStats[a.icao?.toUpperCase()]);
             }}
           >
             <sphereGeometry args={[markerRadius, 12, 12]} />

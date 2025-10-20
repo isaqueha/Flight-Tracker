@@ -1,5 +1,5 @@
 import { useRef, useMemo, useState } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
 import { latLonToVec3 } from "../helpers/geo";
@@ -83,11 +83,20 @@ export default function FlightArcs() {
       const plane = mesh.children[0];
       if (plane) {
         plane.position.copy(pos);
-        plane.rotation.set(0, 90, 90); // reset
+
+        // Align the plane's Y axis to the curve tangent
         plane.quaternion.setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
           tangent.normalize()
         );
+
+        // Rotate 90 degrees around Z so the emoji faces the direction of travel.
+        // We multiply the quaternion so we preserve the tangent alignment and
+        // then spin the mesh by +90deg (Math.PI/2). If the emoji faces the
+        // wrong way, flip the sign here.
+        const zQuat = new THREE.Quaternion();
+        zQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
+        plane.quaternion.multiply(zQuat);
       }
     });
   });
@@ -102,13 +111,13 @@ export default function FlightArcs() {
           <primitive
             key={i}
             object={mesh}
-            onPointerOver={(e) => {
+            onPointerOver={(e: ThreeEvent<PointerEvent>) => {
               e.stopPropagation();
               setHoveredFlight(flight);
               mesh.material.uniforms.color1.value.set("#ffffff");
               document.body.style.cursor = "pointer";
             }}
-            onPointerOut={(e) => {
+            onPointerOut={(e: ThreeEvent<PointerEvent>) => {
               e.stopPropagation();
               setHoveredFlight(null);
               mesh.material.uniforms.color1.value.set("#00ffff");
@@ -120,7 +129,6 @@ export default function FlightArcs() {
             <Html
               position={mesh.userData.curve.getPoint(0)}
               as="div"
-              rotateZ={.5}
               transform
               occlude
               distanceFactor={1}

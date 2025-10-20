@@ -1,5 +1,5 @@
 import { useRef, useMemo, useState } from "react";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useFrame, type ThreeEvent, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
 import { latLonToVec3 } from "../helpers/geo";
@@ -13,12 +13,24 @@ type FlightData = {
 };
 
 type FlightMesh = THREE.Object3D & { material?: { uniforms?: any }; userData?: any; children?: any[] };
+type ShaderMaterialWithUniforms = THREE.ShaderMaterial & {
+  uniforms: {
+    time: { value: number };
+    color1: { value: THREE.Color };
+    color2: { value: THREE.Color };
+  };
+};
 
 export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<THREE.Mesh> }) {
   const flights = useFlightsData();
   const groupRef = useRef<THREE.Group>(null!);
   const [hoveredFlight, setHoveredFlight] = useState<FlightData | null>(null);
+  const [hoverPos, setHoverPos] = useState<THREE.Vector3 | null>(null);
   const { setSelectedItem } = useAppContext();
+  const TOOLTIP_OFFSET = 0.03; // world units to push tooltip slightly above the arc when following cursor
+  const { camera, gl } = useThree();
+  const raycasterRef = useRef(new THREE.Raycaster());
+  
 
   // --- Build each arc curve + geometry ---
   const arcs = useMemo(() => {
@@ -84,8 +96,8 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
       const pos = curve.getPoint(progress);
       const tangent = curve.getTangent(progress);
 
-      // Update shader
-      mesh.material.uniforms.time.value += delta * 0.4;
+  // Update shader
+  (mesh.material as ShaderMaterialWithUniforms).uniforms.time.value += delta * 0.4;
 
       // Move airplane icon if present
       const plane = mesh.children[0];
@@ -105,6 +117,8 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
         const zQuat = new THREE.Quaternion();
         zQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
         plane.quaternion.multiply(zQuat);
+
+        // Visibility now handled by <Html occlude={...} /> using the earthRef passed in.
       }
     });
   });
@@ -122,13 +136,20 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
             onPointerOver={(e: ThreeEvent<PointerEvent>) => {
               e.stopPropagation();
               setHoveredFlight(flight);
-              mesh.material.uniforms.color1.value.set("#ffffff");
+              setHoverPos(e.point.clone());
+              (mesh.material as ShaderMaterialWithUniforms).uniforms.color1.value.set("#ffffff");
               document.body.style.cursor = "pointer";
+            }}
+            onPointerMove={(e: ThreeEvent<PointerEvent>) => {
+              e.stopPropagation();
+              // update tooltip position while moving over the arc
+              if (hoveredFlight === flight) setHoverPos(e.point.clone());
             }}
             onPointerOut={(e: ThreeEvent<PointerEvent>) => {
               e.stopPropagation();
               setHoveredFlight(null);
-              mesh.material.uniforms.color1.value.set("#00ffff");
+              setHoverPos(null);
+              (mesh.material as ShaderMaterialWithUniforms).uniforms.color1.value.set("#00ffff");
               document.body.style.cursor = "auto";
             }}
             onClick={() => setSelectedItem({ type: "flight", data: flight })}
@@ -141,17 +162,62 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
               occlude={earthRef ? [earthRef] : undefined}
               distanceFactor={1}
             >
-              <div className="text-2xl select-none">✈</div>
+              <div
+                className="text-2xl select-none"
+                onPointerOver={(e) => {
+                  e.stopPropagation();
+                  setHoveredFlight(flight);
+                  // compute intersection point from DOM event to position tooltip
+                  const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
+                  const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                  const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                  const ray = raycasterRef.current;
+                  ray.setFromCamera(new THREE.Vector2(x, y), camera);
+                  const intersects = ray.intersectObject(mesh, true);
+                  if (intersects.length) setHoverPos(intersects[0].point.clone());
+                  (mesh.material as ShaderMaterialWithUniforms).uniforms.color1.value.set("#ffffff");
+                  document.body.style.cursor = "pointer";
+                }}
+                onPointerOut={(e) => {
+                  e.stopPropagation();
+                  setHoveredFlight(null);
+                  setHoverPos(null);
+                  (mesh.material as ShaderMaterialWithUniforms).uniforms.color1.value.set("#00ffff");
+                  document.body.style.cursor = "auto";
+                }}
+                onPointerMove={(e) => {
+                  e.stopPropagation();
+                  const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
+                  const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                  const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                  const ray = raycasterRef.current;
+                  ray.setFromCamera(new THREE.Vector2(x, y), camera);
+                  const intersects = ray.intersectObject(mesh, true);
+                  if (intersects.length) setHoverPos(intersects[0].point.clone());
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedItem({ type: "flight", data: flight });
+                }}
+              >
+                ✈
+              </div>
             </Html>
 
+            {/* Tooltip only when hovered; position follows the mouse (hoverPos) */}
             {/* Tooltip only when hovered */}
             {hoveredFlight === flight && (
-              <Html position={midPoint} scale={0.33}>
-                <div className="bg-black/70 text-white text-xs px-2 py-1 rounded-md shadow border border-white/20">
-                  ✈ {flight.airline}<br />
-                  {flight.from.code} → {flight.to.code}
-                </div>
-              </Html>
+              (() => {
+                const base = (hoverPos ?? midPoint).clone();
+                const tooltipPos = base.add(base.clone().normalize().multiplyScalar(TOOLTIP_OFFSET));
+                return (
+                  <Html position={tooltipPos} scale={0.33} occlude={false}>
+                    <div className="bg-black/70 text-white text-xs px-2 py-1 rounded-md shadow border border-white/20">
+                      {flight.from.code} → {flight.to.code} — {flight.airline}
+                    </div>
+                  </Html>
+                );
+              })()
             )}
           </primitive>
         );

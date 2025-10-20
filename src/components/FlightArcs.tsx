@@ -6,10 +6,18 @@ import { latLonToVec3 } from "../helpers/geo";
 import useFlightsData from "../hooks/useFlights";
 import { useAppContext } from "../context/AppContext";
 
-export default function FlightArcs() {
+type FlightData = {
+  from: { lat: number; lon: number; code: string };
+  to: { lat: number; lon: number; code: string };
+  airline: string;
+};
+
+type FlightMesh = THREE.Object3D & { material?: { uniforms?: any }; userData?: any; children?: any[] };
+
+export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<THREE.Mesh> }) {
   const flights = useFlightsData();
-  const groupRef = useRef();
-  const [hoveredFlight, setHoveredFlight] = useState(null);
+  const groupRef = useRef<THREE.Group>(null!);
+  const [hoveredFlight, setHoveredFlight] = useState<FlightData | null>(null);
   const { setSelectedItem } = useAppContext();
 
   // --- Build each arc curve + geometry ---
@@ -25,8 +33,7 @@ export default function FlightArcs() {
         .normalize()
         .multiplyScalar(1 + altitude);
 
-      const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-      const points = curve.getPoints(64);
+  const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
 
       // TubeGeometry gives us a 3D cylinder line — great for pointer events
       const geometry = new THREE.TubeGeometry(curve, 64, 0.003, 8, false);
@@ -70,7 +77,8 @@ export default function FlightArcs() {
   useFrame((state, delta) => {
     const t = (state.clock.elapsedTime * 0.05) % 1;
 
-    groupRef.current?.children.forEach((mesh, i) => {
+    groupRef.current?.children.forEach((m, i) => {
+      const mesh = m as FlightMesh;
       const { curve } = mesh.userData;
       const progress = (t + i * 0.1) % 1;
       const pos = curve.getPoint(progress);
@@ -130,7 +138,7 @@ export default function FlightArcs() {
               position={mesh.userData.curve.getPoint(0)}
               as="div"
               transform
-              occlude
+              occlude={earthRef ? [earthRef] : undefined}
               distanceFactor={1}
             >
               <div className="text-2xl select-none">✈</div>

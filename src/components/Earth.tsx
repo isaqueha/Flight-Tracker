@@ -16,17 +16,19 @@ export default function Earth() {
     // mesh.current.rotation.y += 0.0005;
   });
 
+  const earthRef = useRef<THREE.Mesh>(null!);
+
   return (
     <group ref={mesh}>
       {/* Earth mesh */}
-      <mesh>
+      <mesh ref={earthRef}>
         <sphereGeometry args={[1, 64, 64]} />
         <meshPhongMaterial map={colorMap} bumpMap={bumpMap} bumpScale={0.05} />
       </mesh>
 
       {/* Layers */}
       <AirportPoints />
-      <FlightsLayer />
+      <FlightsLayer earthRef={earthRef} />
     </group>
   );
 }

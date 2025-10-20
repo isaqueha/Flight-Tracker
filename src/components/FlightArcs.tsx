@@ -6,19 +6,18 @@ import { latLonToVec3 } from "../helpers/geo";
 import useFlightsData from "../hooks/useFlights";
 import { useAppContext } from "../context/AppContext";
 
-export default function FlightArcs({ }) {
+export default function FlightArcs() {
   const flights = useFlightsData();
   const groupRef = useRef();
-  const [hoveredFlight, setHoveredFlight] = useState(null); // 👈 track hovered flight
+  const [hoveredFlight, setHoveredFlight] = useState(null);
   const { setSelectedItem } = useAppContext();
 
-  // Precompute curve geometries + materials
+  // --- Build each arc curve + geometry ---
   const arcs = useMemo(() => {
-    return flights.map((f) => {
+    return flights.map((f, i) => {
       const start = latLonToVec3(f.from.lat, f.from.lon, 1);
       const end = latLonToVec3(f.to.lat, f.to.lon, 1);
 
-      // curved midpoint (raised)
       const distance = start.angleTo(end);
       const altitude = 0.07 + distance * 0.25;
       const mid = new THREE.Vector3()
@@ -27,10 +26,11 @@ export default function FlightArcs({ }) {
         .multiplyScalar(1 + altitude);
 
       const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-      const points = curve.getPoints(128);
-      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const points = curve.getPoints(64);
 
-      // Gradient line material using shader
+      // TubeGeometry gives us a 3D cylinder line — great for pointer events
+      const geometry = new THREE.TubeGeometry(curve, 64, 0.003, 8, false);
+
       const material = new THREE.ShaderMaterial({
         transparent: true,
         uniforms: {
@@ -39,9 +39,9 @@ export default function FlightArcs({ }) {
           color2: { value: new THREE.Color("#ff00ff") },
         },
         vertexShader: `
-          varying float vProgress;
+          varying vec2 vUv;
           void main() {
-            vProgress = position.y;
+            vUv = uv;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `,
@@ -49,78 +49,88 @@ export default function FlightArcs({ }) {
           uniform float time;
           uniform vec3 color1;
           uniform vec3 color2;
-          varying float vProgress;
-
+          varying vec2 vUv;
           void main() {
-            float trail = smoothstep(0.0, 0.8, fract(vProgress + time));
-            vec3 color = mix(color1, color2, vProgress);
-            gl_FragColor = vec4(color, trail * 0.9);
+            float fade = smoothstep(0.0, 0.9, fract(vUv.x + time));
+            vec3 color = mix(color1, color2, vUv.x);
+            gl_FragColor = vec4(color, fade * 0.8);
           }
         `,
       });
 
-      const line = new THREE.Line(geometry, material);
-      line.userData = { f, curve };
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.userData = { f, curve, id: i };
+      mesh.frustumCulled = false;
 
-      return line;
+      return mesh;
     });
   }, [flights]);
 
-   // ✅ Animate flight progress + plane movement
+  // --- Animate trail & ✈ marker ---
   useFrame((state, delta) => {
     const t = (state.clock.elapsedTime * 0.05) % 1;
-    groupRef.current.children.forEach((line, i) => {
-      const { curve } = line.userData;
+
+    groupRef.current?.children.forEach((mesh, i) => {
+      const { curve } = mesh.userData;
       const progress = (t + i * 0.1) % 1;
       const pos = curve.getPoint(progress);
       const tangent = curve.getTangent(progress);
 
-      const plane = line.children[0];
+      // Update shader
+      mesh.material.uniforms.time.value += delta * 0.4;
+
+      // Move airplane icon if present
+      const plane = mesh.children[0];
       if (plane) {
         plane.position.copy(pos);
+        plane.rotation.set(0, 90, 90); // reset
         plane.quaternion.setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
           tangent.normalize()
         );
       }
-
-      // Move gradient animation
-      line.material.uniforms.time.value += delta * 0.5;
     });
   });
 
   return (
     <group ref={groupRef}>
-      {arcs.map((line, i) => {
-        const flight = line.userData.f;
-        const midPoint = line.userData.curve.getPoint(0.5);
+      {arcs.map((mesh, i) => {
+        const flight = mesh.userData.f;
+        const midPoint = mesh.userData.curve.getPoint(0.5);
 
         return (
-        <primitive
-          key={i}
-          object={line}
-           onPointerOver={(e) => {
-            e.stopPropagation();
-            setHoveredFlight(flight); // 👈 set current hovered flight
-            line.material.uniforms.color1.value.set("#ffffff");
-            document.body.style.cursor = "pointer";
-          }}
-          onPointerOut={(e) => {
-            e.stopPropagation();
-            setHoveredFlight(null); // 👈 clear hover
-            line.material.uniforms.color1.value.set("#00ffff");
-            document.body.style.cursor = "auto";
-          }}
-          // onClick={() => setSelectedItem({ type: "flight", data: flight })}
-        >
-           {/* Render tooltip only if this is the hovered flight */}
+          <primitive
+            key={i}
+            object={mesh}
+            onPointerOver={(e) => {
+              e.stopPropagation();
+              setHoveredFlight(flight);
+              mesh.material.uniforms.color1.value.set("#ffffff");
+              document.body.style.cursor = "pointer";
+            }}
+            onPointerOut={(e) => {
+              e.stopPropagation();
+              setHoveredFlight(null);
+              mesh.material.uniforms.color1.value.set("#00ffff");
+              document.body.style.cursor = "auto";
+            }}
+            onClick={() => setSelectedItem({ type: "flight", data: flight })}
+          >
+            {/* ✈ emoji following tip */}
+            <Html
+              position={mesh.userData.curve.getPoint(0)}
+              as="div"
+              rotateZ={.5}
+              transform
+              occlude
+              distanceFactor={1}
+            >
+              <div className="text-2xl select-none">✈</div>
+            </Html>
+
+            {/* Tooltip only when hovered */}
             {hoveredFlight === flight && (
-              <Html
-                // transform
-                scale={0.33}
-                // distanceFactor={2.0}
-                position={midPoint}
-              >
+              <Html position={midPoint} scale={0.33}>
                 <div className="bg-black/70 text-white text-xs px-2 py-1 rounded-md shadow border border-white/20">
                   ✈ {flight.airline}<br />
                   {flight.from.code} → {flight.to.code}

@@ -9,7 +9,7 @@ export default function SidePanel() {
   const { selectedItem } = useAppContext();
 
   if (!selectedItem) return (
-    <div className="p-4 text-gray-400 italic">Select a flight or airport to see details.</div>
+    <div className="p-4 text-gray-400 text-2xl font-bold underline">Select a flight or airport to see details.</div>
   );
 
   const { type, data } = selectedItem;

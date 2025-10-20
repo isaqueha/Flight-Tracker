@@ -7,7 +7,7 @@ export default function App() {
       <div className="flex w-full h-full">
         <Globe />
       </div>
-      <div className="w-[60rem] border-l border-gray-800 bg-gray-900/80 p-4 overflow-y-auto">
+      <div className="w-[50rem] border-l border-gray-800 bg-gray-900/80 p-4 overflow-y-auto">
         <Sidebar />
       </div>
     </div>

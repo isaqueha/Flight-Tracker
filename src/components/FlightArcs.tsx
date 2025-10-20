@@ -1,7 +1,7 @@
 import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { Html, useFBX } from "@react-three/drei";
+import { Html } from "@react-three/drei";
 import { latLonToVec3 } from "../helpers/geo";
 import useFlightsData from "../hooks/useFlights";
 import { useAppContext } from "../context/AppContext";
@@ -12,22 +12,6 @@ export default function FlightArcs({ }) {
   const [hoveredFlight, setHoveredFlight] = useState(null); // 👈 track hovered flight
   const { setSelectedItem } = useAppContext();
 
-  // const airplane = useFBX("/PlaneModel/source/Cute Airplane.fbx");
-
-  // // Adjust scale/orientation (FBX models are often large or rotated oddly)
-  // airplane.scale.setScalar(0.00015);
-  // airplane.rotation.x = Math.PI ; // Fix nose orientation
-  // airplane.rotation.z = Math.PI / 2;     // Fix upside-down
-  // airplane.traverse((child) => {
-  //   if (child.isMesh) {
-  //     child.material = new THREE.MeshStandardMaterial({
-  //       color: 0xffffff,
-  //       metalness: 0.3,
-  //       roughness: 0.4,
-  //     });
-  //   }
-  // });
-
   // Precompute curve geometries + materials
   const arcs = useMemo(() => {
     return flights.map((f) => {
@@ -36,7 +20,7 @@ export default function FlightArcs({ }) {
 
       // curved midpoint (raised)
       const distance = start.angleTo(end);
-      const altitude = 0.05 + distance * 0.25;
+      const altitude = 0.07 + distance * 0.25;
       const mid = new THREE.Vector3()
         .addVectors(start, end)
         .normalize()
@@ -77,11 +61,6 @@ export default function FlightArcs({ }) {
 
       const line = new THREE.Line(geometry, material);
       line.userData = { f, curve };
-
-      // Clone airplane model for each flight
-      // const plane = airplane.clone();
-      // plane.position.copy(start);
-      // line.add(plane);
 
       return line;
     });
@@ -124,20 +103,22 @@ export default function FlightArcs({ }) {
             e.stopPropagation();
             setHoveredFlight(flight); // 👈 set current hovered flight
             line.material.uniforms.color1.value.set("#ffffff");
+            document.body.style.cursor = "pointer";
           }}
           onPointerOut={(e) => {
             e.stopPropagation();
             setHoveredFlight(null); // 👈 clear hover
             line.material.uniforms.color1.value.set("#00ffff");
+            document.body.style.cursor = "auto";
           }}
-          onClick={() => setSelectedItem({ type: "flight", data: flight })}
+          // onClick={() => setSelectedItem({ type: "flight", data: flight })}
         >
            {/* Render tooltip only if this is the hovered flight */}
             {hoveredFlight === flight && (
               <Html
-                transform
+                // transform
                 scale={0.33}
-                distanceFactor={2.0}
+                // distanceFactor={2.0}
                 position={midPoint}
               >
                 <div className="bg-black/70 text-white text-xs px-2 py-1 rounded-md shadow border border-white/20">

@@ -53,77 +53,54 @@ export default function AirportPoints({
   // Precompute positions (Vector3) for each airport
   const airportNodes = useMemo(
     () =>
-      airports.map((a) => ({
-        ...a,
-        position: latLonToVec3(a.lat, a.lon, 1.001), // slightly above surface
+      airports.map((airport) => ({
+        ...airport,
+        position: latLonToVec3(airport.lat, airport.lon, 1.001), // slightly above surface
       })),
     [airports]
   );
 
-  // Slight pulsing animation for hovered/selected markers
-  useEffect(() => {
-    let raf;
-    const start = performance.now();
-    const animate = (t) => {
-      const elapsed = (t - start) / 1000;
-      if (groupRef.current) {
-        groupRef.current.children.forEach((child) => {
-          const meta = child.userData;
-          if (!meta) return;
-          const isHover = hovered && meta.icao === hovered.icao;
-          const isSelected = selectedIcao && meta.icao === selectedIcao;
-          const baseScale = meta.baseScale ?? 1;
-          const pulse = 1 + (isHover ? 0.25 * Math.sin(elapsed * 6) : 0.0);
-          child.scale.setScalar(baseScale * (isSelected ? 1.6 : pulse));
-        });
-      }
-      raf = requestAnimationFrame(animate);
-    };
-    raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
-  }, [hovered, selectedIcao]);
-
   return (
     <group ref={groupRef}>
-      {airportNodes.map((a) => {
-        const color = selectedIcao === a.icao ? 0xffd166 : 0x4ee1ff;
+      {airportNodes.map((airport) => {
+        const color = selectedIcao === airport.icao ? 0xff9966 : 0x4ee1ff;
         return (
           <mesh
-            key={a.icao + a.lat + a.lon}
-            position={[a.position.x, a.position.y, a.position.z]}
-            userData={{ icao: a.icao }}
+            key={airport.icao + airport.lat + airport.lon}
+            position={[airport.position.x, airport.position.y, airport.position.z]}
+            userData={{ icao: airport.icao }}
             onPointerOver={(e) => {
               e.stopPropagation();
-              setHovered(a);
+              setHovered(airport);
+              console.log("hover", airport.icao);
               document.body.style.cursor = "pointer";
             }}
             onPointerOut={(e) => {
               e.stopPropagation();
-              setHovered((cur) => (cur && cur.icao === a.icao ? null : cur));
+              setHovered(null);
               document.body.style.cursor = "auto";
             }}
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedIcao(a.icao);
-              setSelectedItem({ type: "airport", data: a });
-              console.log("Selected airport:", a, airportStats[a.icao?.toUpperCase()]);
+              setSelectedIcao(airport.icao);
+              setSelectedItem({ type: "airport", data: airport });
             }}
           >
             <sphereGeometry args={[markerRadius, 12, 12]} />
             <meshStandardMaterial
               emissive={new THREE.Color(color)}
-              emissiveIntensity={0.6}
-              metalness={0.1}
+              emissiveIntensity={0.3}
+              metalness={0.9}
               roughness={0.4}
             />
             {/* Tooltip via Html from drei. Only render when hovered */}
-            {hovered && hovered.icao === a.icao && (
+            {hovered && hovered.icao === airport.icao && (
               <Html
                 center
                 position={[0, markerRadius * 1.6, 0]}
                 // transform
                 scale={0.5}
-                distanceFactor={2}
+                // distanceFactor={2}
                 occlude={true}
                 style={{
                   pointerEvents: "none",
@@ -135,18 +112,16 @@ export default function AirportPoints({
                     padding: "6px 10px",
                     background: "rgba(10,10,12,0.85)",
                     color: "white",
+                    display: "flex",
                     borderRadius: 6,
-                    fontSize: 12,
+                    fontSize: 16,
                     border: "1px solid rgba(255,255,255,0.06)",
                     boxShadow: "0 6px 18px rgba(2,6,23,0.6)",
                   }}
                 >
-                  <div style={{ fontWeight: 700 }}>{a.name}</div>
-                  <div style={{ opacity: 0.85, fontSize: 11 }}>
-                    {a.city} — {a.country}
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 11, opacity: 0.8 }}>
-                    {a.icao ? `ICAO: ${a.icao}` : a.iata ? `IATA: ${a.iata}` : ""}
+                  <div style={{ fontWeight: 700 }}>{airport.name}</div>
+                  <div style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>
+                    ({`${airport.icao}`})
                   </div>
                 </div>
               </Html>

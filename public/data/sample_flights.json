@@ -19,5 +19,117 @@
     "from": { "lat": 37.62, "lon": -122.38 },
     "to": { "lat": 25.79, "lon": -80.29 },
     "currentPosition": { "lat": 30.0, "lon": -100.0 }
-  }
+  },
+  {
+    "id": "BA321",
+    "airline": "British Airways",
+    "from": { "lat": 51.47, "lon": -0.45 },
+    "to": { "lat": 40.64, "lon": -73.78 },
+    "currentPosition": { "lat": 45.0, "lon": -30.0 }
+  },
+  {
+    "id": "AF654",
+    "airline": "Air France",
+    "from": { "lat": 48.86, "lon": 2.35 },
+    "to": { "lat": 34.05, "lon": -118.24 },
+    "currentPosition": { "lat": 40.0, "lon": -50.0 }
+  },
+  {
+    "id": "LH987",
+    "airline": "Lufthansa",
+    "from": { "lat": 50.11, "lon": 8.68 },
+    "to": { "lat": 35.68, "lon": 139.69 },
+    "currentPosition": { "lat": 40.0, "lon": 60.0 }
+  },
+  {
+    "id": "QF159",
+    "airline": "Qantas",
+    "from": { "lat": -33.86, "lon": 151.21 },
+    "to": { "lat": 51.47, "lon": -0.45 },
+    "currentPosition": { "lat": 10.0, "lon": 80.0 }
+  },
+  {
+    "id": "EK202",
+    "airline": "Emirates",
+    "from": { "lat": 25.25, "lon": 55.36 },
+    "to": { "lat": 40.64, "lon": -73.78 },
+    "currentPosition": { "lat": 35.0, "lon": 20.0 }
+  },
+  {
+    "id": "LA303",
+    "airline": "LATAM Airlines",
+    "from": { "lat": -33.45, "lon": -70.66 },
+    "to": { "lat": -23.55, "lon": -46.63 },
+    "currentPosition": { "lat": -28.0, "lon": -60.0 }
+  },
+  {
+    "id": "AV404",
+    "airline": "Avianca",
+    "from": { "lat": 4.71, "lon": -74.07 },
+    "to": { "lat": -34.61, "lon": -58.38 },
+    "currentPosition": { "lat": -15.0, "lon": -40.0 }
+  },
+  {
+    "id": "AZ505",
+    "airline": "Alitalia",
+    "from": { "lat": 41.9, "lon": 12.5 },
+    "to": { "lat": 35.68, "lon": 139.69 },
+    "currentPosition": { "lat": 30.0, "lon": 80.0 }
+  },
+  {
+    "id": "CX606",
+    "airline": "Cathay Pacific",
+    "from": { "lat": 22.31, "lon": 114.17 },
+    "to": { "lat": 51.47, "lon": -0.45 },
+    "currentPosition": { "lat": 40.0, "lon": -20.0 }
+  },
+  {
+    "id": "JL707",
+    "airline": "Japan Airlines",
+    "from": { "lat": 35.68, "lon": 139.69 },
+    "to": { "lat": -33.86, "lon": 151.21 },
+    "currentPosition": { "lat": 0.0, "lon": 100.0 }
+  },
+  {
+    "id": "KE808",
+    "airline": "Korean Air",
+    "from": { "lat": 37.56, "lon": 126.97 },
+    "to": { "lat": 40.64, "lon": -73.78 },
+    "currentPosition": { "lat": 30.0, "lon": -20.0 }
+  },
+  {
+    "id": "SG909",
+    "airline": "Singapore Airlines",
+    "from": { "lat": 1.35, "lon": 103.82 },
+    "to": { "lat": 51.47, "lon": -0.45 },
+    "currentPosition": { "lat": 25.0, "lon": 50.0 }
+  },
+  {
+    "id": "IB010",
+    "airline": "Iberia",
+    "from": { "lat": 40.42, "lon": -3.7 },
+    "to": { "lat": -23.55, "lon": -46.63 },
+    "currentPosition": { "lat": 10.0, "lon": -20.0 }
+  },
+  {
+    "id": "G31001",
+    "airline": "Gol Linhas Aéreas",
+    "from": { "lat": -23.43, "lon": -46.47 },
+    "to": { "lat": -30.03, "lon": -51.23 },
+    "currentPosition": { "lat": -26.0, "lon": -48.0 }
+  },
+  {
+    "id": "IC22001",
+    "airline": "Air India",
+    "from": { "lat": 28.61, "lon": 77.2 },
+    "to": { "lat": 39.91, "lon": 116.4 },
+    "currentPosition": { "lat": 34.0, "lon": 90.0 }
+  },
+  {
+    "id": "SA33001",
+    "airline": "South African Airways",
+    "from": { "lat": -26.14, "lon": 28.24 },
+    "to": { "lat": -33.94, "lon": 18.6 },
+    "currentPosition": { "lat": -30.0, "lon": 23.0 }
+  }  
 ]

@@ -18,6 +18,8 @@ type ShaderMaterialWithUniforms = THREE.ShaderMaterial & {
     time: { value: number };
     color1: { value: THREE.Color };
     color2: { value: THREE.Color };
+    opacityMin: { value: number };
+    opacityMax: { value: number };
   };
 };
 
@@ -30,6 +32,7 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
   const TOOLTIP_OFFSET = 0.03; // world units to push tooltip slightly above the arc when following cursor
   const { camera, gl } = useThree();
   const raycasterRef = useRef(new THREE.Raycaster());
+  const planeRefs = useRef<Map<number, THREE.Object3D>>(new Map());
   
 
   // --- Build each arc curve + geometry ---
@@ -56,6 +59,8 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
           time: { value: 0 },
           color1: { value: new THREE.Color("#00ffff") },
           color2: { value: new THREE.Color("#ff00ff") },
+          opacityMin: { value: 0.45 },
+          opacityMax: { value: 1.0 },
         },
         vertexShader: `
           varying vec2 vUv;
@@ -68,11 +73,16 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
           uniform float time;
           uniform vec3 color1;
           uniform vec3 color2;
+          uniform float opacityMin;
+          uniform float opacityMax;
           varying vec2 vUv;
           void main() {
+            // fade is the animation phase along the tube (0..1)
             float fade = smoothstep(0.0, 0.9, fract(vUv.x + time));
             vec3 color = mix(color1, color2, vUv.x);
-            gl_FragColor = vec4(color, fade * 0.8);
+            // keep the trail more visible by clamping to a minimum opacity
+            float alpha = mix(opacityMin, opacityMax, fade);
+            gl_FragColor = vec4(color, alpha);
           }
         `,
       });
@@ -87,38 +97,29 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
 
   // --- Animate trail & ✈ marker ---
   useFrame((state, delta) => {
-    const t = (state.clock.elapsedTime * 0.05) % 1;
+    const base = (state.clock.elapsedTime * 0.08) % 1;
 
     groupRef.current?.children.forEach((m, i) => {
       const mesh = m as FlightMesh;
       const { curve } = mesh.userData;
-      const progress = (t + i * 0.1) % 1;
+      if (!curve) return;
+
+      // Progress is the single source of truth for both shader animation and plane placement
+      const progress = (base + i * 0.06) % 1;
       const pos = curve.getPoint(progress);
-      const tangent = curve.getTangent(progress);
+      const tangent = curve.getTangent(progress).clone();
 
-  // Update shader
-  (mesh.material as ShaderMaterialWithUniforms).uniforms.time.value += delta * 0.4;
+      // Update shader time to match the progress so the visual head is in sync
+      (mesh.material as ShaderMaterialWithUniforms).uniforms.time.value = progress;
 
-      // Move airplane icon if present
-      const plane = mesh.children[0];
-      if (plane) {
-        plane.position.copy(pos);
-
-        // Align the plane's Y axis to the curve tangent
-        plane.quaternion.setFromUnitVectors(
-          new THREE.Vector3(0, 1, 0),
-          tangent.normalize()
-        );
-
-        // Rotate 90 degrees around Z so the emoji faces the direction of travel.
-        // We multiply the quaternion so we preserve the tangent alignment and
-        // then spin the mesh by +90deg (Math.PI/2). If the emoji faces the
-        // wrong way, flip the sign here.
+      // Move airplane icon group if present (we attach a group ref per arc)
+      const planeObj = planeRefs.current.get(mesh.userData.id as number);
+      if (planeObj) {
+        planeObj.position.copy(pos);
+        planeObj.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tangent.normalize());
         const zQuat = new THREE.Quaternion();
         zQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
-        plane.quaternion.multiply(zQuat);
-
-        // Visibility now handled by <Html occlude={...} /> using the earthRef passed in.
+        planeObj.quaternion.multiply(zQuat);
       }
     });
   });
@@ -154,55 +155,62 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
             }}
             onClick={() => setSelectedItem({ type: "flight", data: flight })}
           >
-            {/* ✈ emoji following tip */}
-            <Html
-              position={mesh.userData.curve.getPoint(0)}
-              as="div"
-              transform
-              occlude={earthRef ? [earthRef] : undefined}
-              distanceFactor={1}
+            {/* ✈ emoji following tip: render inside a group so we can control transform from useFrame */}
+            <group
+              ref={(g) => {
+                if (!g) return;
+                planeRefs.current.set(mesh.userData.id as number, g);
+              }}
             >
-              <div
-                className="text-2xl select-none"
-                onPointerOver={(e) => {
-                  e.stopPropagation();
-                  setHoveredFlight(flight);
-                  // compute intersection point from DOM event to position tooltip
-                  const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
-                  const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                  const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-                  const ray = raycasterRef.current;
-                  ray.setFromCamera(new THREE.Vector2(x, y), camera);
-                  const intersects = ray.intersectObject(mesh, true);
-                  if (intersects.length) setHoverPos(intersects[0].point.clone());
-                  (mesh.material as ShaderMaterialWithUniforms).uniforms.color1.value.set("#ffffff");
-                  document.body.style.cursor = "pointer";
-                }}
-                onPointerOut={(e) => {
-                  e.stopPropagation();
-                  setHoveredFlight(null);
-                  setHoverPos(null);
-                  (mesh.material as ShaderMaterialWithUniforms).uniforms.color1.value.set("#00ffff");
-                  document.body.style.cursor = "auto";
-                }}
-                onPointerMove={(e) => {
-                  e.stopPropagation();
-                  const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
-                  const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                  const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-                  const ray = raycasterRef.current;
-                  ray.setFromCamera(new THREE.Vector2(x, y), camera);
-                  const intersects = ray.intersectObject(mesh, true);
-                  if (intersects.length) setHoverPos(intersects[0].point.clone());
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedItem({ type: "flight", data: flight });
-                }}
+              <Html
+                position={[0, 0, 0]}
+                as="div"
+                transform
+                occlude={earthRef ? [earthRef] : undefined}
+                distanceFactor={1}
               >
-                ✈
-              </div>
-            </Html>
+                <div
+                  className="text-2xl select-none"
+                  onPointerOver={(e) => {
+                    e.stopPropagation();
+                    setHoveredFlight(flight);
+                    // compute intersection point from DOM event to position tooltip
+                    const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                    const ray = raycasterRef.current;
+                    ray.setFromCamera(new THREE.Vector2(x, y), camera);
+                    const intersects = ray.intersectObject(mesh, true);
+                    if (intersects.length) setHoverPos(intersects[0].point.clone());
+                    (mesh.material as ShaderMaterialWithUniforms).uniforms.color1.value.set("#ffffff");
+                    document.body.style.cursor = "pointer";
+                  }}
+                  onPointerOut={(e) => {
+                    e.stopPropagation();
+                    setHoveredFlight(null);
+                    setHoverPos(null);
+                    (mesh.material as ShaderMaterialWithUniforms).uniforms.color1.value.set("#00ffff");
+                    document.body.style.cursor = "auto";
+                  }}
+                  onPointerMove={(e) => {
+                    e.stopPropagation();
+                    const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                    const ray = raycasterRef.current;
+                    ray.setFromCamera(new THREE.Vector2(x, y), camera);
+                    const intersects = ray.intersectObject(mesh, true);
+                    if (intersects.length) setHoverPos(intersects[0].point.clone());
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedItem({ type: "flight", data: flight });
+                  }}
+                >
+                  ✈
+                </div>
+              </Html>
+            </group>
 
             {/* Tooltip only when hovered; position follows the mouse (hoverPos) */}
             {/* Tooltip only when hovered */}

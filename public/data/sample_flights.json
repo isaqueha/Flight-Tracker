@@ -2,134 +2,134 @@
   {
     "id": "AC123",
     "airline": "Air Canada",
-    "from": { "lat": 45.47, "lon": -73.74 },
-    "to": { "lat": 51.47, "lon": -0.45 },
-    "currentPosition": { "lat": 48.85, "lon": 2.35 }
+    "from": { "code": "YUL", "lat": 45.4706, "lon": -73.7408 },
+    "to": { "code": "LHR", "lat": 51.47, "lon": -0.4543 },
+    "currentPosition": { "lat": 48.4703, "lon": -37.09755 }
   },
   {
     "id": "DL456",
     "airline": "Delta",
-    "from": { "lat": 33.64, "lon": -84.43 },
-    "to": { "lat": 40.64, "lon": -73.78 },
-    "currentPosition": { "lat": 39.0, "lon": -80.0 }
+    "from": { "code": "ATL", "lat": 33.6407, "lon": -84.4277 },
+    "to": { "code": "JFK", "lat": 40.6413, "lon": -73.7781 },
+    "currentPosition": { "lat": 37.1410, "lon": -79.1029 }
   },
   {
     "id": "UA789",
     "airline": "United",
-    "from": { "lat": 37.62, "lon": -122.38 },
-    "to": { "lat": 25.79, "lon": -80.29 },
-    "currentPosition": { "lat": 30.0, "lon": -100.0 }
+    "from": { "code": "SFO", "lat": 37.6213, "lon": -122.3790 },
+    "to": { "code": "MIA", "lat": 25.7959, "lon": -80.2870 },
+    "currentPosition": { "lat": 31.7086, "lon": -101.333 }
   },
   {
     "id": "BA321",
     "airline": "British Airways",
-    "from": { "lat": 51.47, "lon": -0.45 },
-    "to": { "lat": 40.64, "lon": -73.78 },
-    "currentPosition": { "lat": 45.0, "lon": -30.0 }
+    "from": { "code": "LHR", "lat": 51.47, "lon": -0.4543 },
+    "to": { "code": "JFK", "lat": 40.6413, "lon": -73.7781 },
+    "currentPosition": { "lat": 46.05565, "lon": -37.1162 }
   },
   {
     "id": "AF654",
     "airline": "Air France",
-    "from": { "lat": 48.86, "lon": 2.35 },
-    "to": { "lat": 34.05, "lon": -118.24 },
-    "currentPosition": { "lat": 40.0, "lon": -50.0 }
+    "from": { "code": "CDG", "lat": 49.0097, "lon": 2.5479 },
+    "to": { "code": "LAX", "lat": 33.9416, "lon": -118.4085 },
+    "currentPosition": { "lat": 41.47565, "lon": -57.9303 }
   },
   {
     "id": "LH987",
     "airline": "Lufthansa",
-    "from": { "lat": 50.11, "lon": 8.68 },
-    "to": { "lat": 35.68, "lon": 139.69 },
-    "currentPosition": { "lat": 40.0, "lon": 60.0 }
+    "from": { "code": "FRA", "lat": 50.0379, "lon": 8.5622 },
+    "to": { "code": "NRT", "lat": 35.7719, "lon": 140.3929 },
+    "currentPosition": { "lat": 42.9049, "lon": 74.47755 }
   },
   {
     "id": "QF159",
     "airline": "Qantas",
-    "from": { "lat": -33.86, "lon": 151.21 },
-    "to": { "lat": 51.47, "lon": -0.45 },
-    "currentPosition": { "lat": 10.0, "lon": 80.0 }
+    "from": { "code": "SYD", "lat": -33.9399, "lon": 151.1753 },
+    "to": { "code": "LHR", "lat": 51.47, "lon": -0.4543 },
+    "currentPosition": { "lat": 8.76505, "lon": 75.3605 }
   },
   {
     "id": "EK202",
     "airline": "Emirates",
-    "from": { "lat": 25.25, "lon": 55.36 },
-    "to": { "lat": 40.64, "lon": -73.78 },
-    "currentPosition": { "lat": 35.0, "lon": 20.0 }
+    "from": { "code": "DXB", "lat": 25.2532, "lon": 55.3657 },
+    "to": { "code": "JFK", "lat": 40.6413, "lon": -73.7781 },
+    "currentPosition": { "lat": 32.94725, "lon": -9.2062 }
   },
   {
     "id": "LA303",
     "airline": "LATAM Airlines",
-    "from": { "lat": -33.45, "lon": -70.66 },
-    "to": { "lat": -23.55, "lon": -46.63 },
-    "currentPosition": { "lat": -28.0, "lon": -60.0 }
+    "from": { "code": "SCL", "lat": -33.3929, "lon": -70.7858 },
+    "to": { "code": "GRU", "lat": -23.4356, "lon": -46.4731 },
+    "currentPosition": { "lat": -28.41425, "lon": -58.62945 }
   },
   {
     "id": "AV404",
     "airline": "Avianca",
-    "from": { "lat": 4.71, "lon": -74.07 },
-    "to": { "lat": -34.61, "lon": -58.38 },
-    "currentPosition": { "lat": -15.0, "lon": -40.0 }
+    "from": { "code": "BOG", "lat": 4.7016, "lon": -74.1469 },
+    "to": { "code": "EZE", "lat": -34.8222, "lon": -58.5358 },
+    "currentPosition": { "lat": -15.0603, "lon": -66.34135 }
   },
   {
     "id": "AZ505",
     "airline": "Alitalia",
-    "from": { "lat": 41.9, "lon": 12.5 },
-    "to": { "lat": 35.68, "lon": 139.69 },
-    "currentPosition": { "lat": 30.0, "lon": 80.0 }
+    "from": { "code": "MAD", "lat": 40.4983, "lon": -3.5676 },
+    "to": { "code": "NRT", "lat": 35.7719, "lon": 140.3929 },
+    "currentPosition": { "lat": 38.1351, "lon": 68.41265 }
   },
   {
     "id": "CX606",
     "airline": "Cathay Pacific",
-    "from": { "lat": 22.31, "lon": 114.17 },
-    "to": { "lat": 51.47, "lon": -0.45 },
-    "currentPosition": { "lat": 40.0, "lon": -20.0 }
+    "from": { "code": "HKG", "lat": 22.3080, "lon": 113.9185 },
+    "to": { "code": "LHR", "lat": 51.47, "lon": -0.4543 },
+    "currentPosition": { "lat": 36.889, "lon": 56.7321 }
   },
   {
     "id": "JL707",
     "airline": "Japan Airlines",
-    "from": { "lat": 35.68, "lon": 139.69 },
-    "to": { "lat": -33.86, "lon": 151.21 },
-    "currentPosition": { "lat": 0.0, "lon": 100.0 }
+    "from": { "code": "NRT", "lat": 35.7719, "lon": 140.3929 },
+    "to": { "code": "SYD", "lat": -33.9399, "lon": 151.1753 },
+    "currentPosition": { "lat": 0.916, "lon": 145.7841 }
   },
   {
     "id": "KE808",
     "airline": "Korean Air",
-    "from": { "lat": 37.56, "lon": 126.97 },
-    "to": { "lat": 40.64, "lon": -73.78 },
-    "currentPosition": { "lat": 30.0, "lon": -20.0 }
+    "from": { "code": "ICN", "lat": 37.4602, "lon": 126.4407 },
+    "to": { "code": "JFK", "lat": 40.6413, "lon": -73.7781 },
+    "currentPosition": { "lat": 39.05075, "lon": 26.3313 }
   },
   {
     "id": "SG909",
     "airline": "Singapore Airlines",
-    "from": { "lat": 1.35, "lon": 103.82 },
-    "to": { "lat": 51.47, "lon": -0.45 },
-    "currentPosition": { "lat": 25.0, "lon": 50.0 }
+    "from": { "code": "SIN", "lat": 1.3644, "lon": 103.9915 },
+    "to": { "code": "LHR", "lat": 51.47, "lon": -0.4543 },
+    "currentPosition": { "lat": 26.4172, "lon": 51.7686 }
   },
   {
     "id": "IB010",
     "airline": "Iberia",
-    "from": { "lat": 40.42, "lon": -3.7 },
-    "to": { "lat": -23.55, "lon": -46.63 },
-    "currentPosition": { "lat": 10.0, "lon": -20.0 }
+    "from": { "code": "MAD", "lat": 40.4983, "lon": -3.5676 },
+    "to": { "code": "GRU", "lat": -23.4356, "lon": -46.4731 },
+    "currentPosition": { "lat": 8.53135, "lon": -25.02035 }
   },
   {
     "id": "G31001",
     "airline": "Gol Linhas Aéreas",
-    "from": { "lat": -23.43, "lon": -46.47 },
-    "to": { "lat": -30.03, "lon": -51.23 },
-    "currentPosition": { "lat": -26.0, "lon": -48.0 }
+    "from": { "code": "GRU", "lat": -23.4356, "lon": -46.4731 },
+    "to": { "code": "POA", "lat": -29.9939, "lon": -51.1714 },
+    "currentPosition": { "lat": -26.71475, "lon": -48.82225 }
   },
   {
     "id": "IC22001",
     "airline": "Air India",
-    "from": { "lat": 28.61, "lon": 77.2 },
-    "to": { "lat": 39.91, "lon": 116.4 },
-    "currentPosition": { "lat": 34.0, "lon": 90.0 }
+    "from": { "code": "DEL", "lat": 28.5562, "lon": 77.1 },
+    "to": { "code": "PEK", "lat": 40.0799, "lon": 116.6031 },
+    "currentPosition": { "lat": 34.31805, "lon": 96.85155 }
   },
   {
     "id": "SA33001",
     "airline": "South African Airways",
-    "from": { "lat": -26.14, "lon": 28.24 },
-    "to": { "lat": -33.94, "lon": 18.6 },
-    "currentPosition": { "lat": -30.0, "lon": 23.0 }
-  }  
+    "from": { "code": "JNB", "lat": -26.1337, "lon": 28.2420 },
+    "to": { "code": "CPT", "lat": -33.9690, "lon": 18.5972 },
+    "currentPosition": { "lat": -30.05135, "lon": 23.4196 }
+  }
 ]

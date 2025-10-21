@@ -63,7 +63,9 @@ export default function AirportPoints({
   return (
     <group ref={groupRef}>
       {airportNodes.map((airport) => {
-        const color = selectedIcao === airport.icao ? 0xff9966 : 0x4ee1ff;
+        const isSelected = selectedIcao === airport.icao;
+        const isHovered = hovered && hovered.icao === airport.icao;
+        const color = isSelected ? 0xff9966 : 0x4ee1ff;
         return (
           <mesh
             key={airport.icao + airport.lat + airport.lon}
@@ -89,10 +91,22 @@ export default function AirportPoints({
             <sphereGeometry args={[markerRadius, 12, 12]} />
             <meshStandardMaterial
               emissive={new THREE.Color(color)}
-              emissiveIntensity={0.3}
+              emissiveIntensity={isHovered || isSelected ? 1.2 : 0.6}
               metalness={0.9}
-              roughness={0.4}
+              roughness={0.25}
             />
+
+            {/* Add an additive glow ring (slightly larger transparent sphere) */}
+            <mesh position={[0, 0, 0]}>
+              <sphereGeometry args={[markerRadius * (isHovered ? 2.4 : 1.8), 12, 12]} />
+              <meshBasicMaterial
+                color={new THREE.Color(color)}
+                transparent={true}
+                opacity={isHovered ? 0.45 : 0.22}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+              />
+            </mesh>
             {/* Tooltip via Html from drei. Only render when hovered */}
             {hovered && hovered.icao === airport.icao && (
               <Html

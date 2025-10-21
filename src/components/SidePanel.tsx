@@ -4,6 +4,7 @@ import airlines from "../../public/data/airlines.json";
 import airportStats from "../../public/data/airportStats.json";
 import { useAppContext } from "../context/AppContext";
 import DestinationDonutChart from "./charts/DestinationDonutChart";
+import TripLengthChart from "./charts/TripLengthChart";
 
 export default function SidePanel() {
   const { selectedItem } = useAppContext();
@@ -39,8 +40,8 @@ export default function SidePanel() {
         <>
           <p><strong>{data.id} - {data.airline}</strong></p>
           <p>{data.from.code} → {data.to.code}</p>
-          <p className="mt-2 text-sm text-gray-400">Fleet Composition</p>
           <AirlineFleetChart data={airlines.filter((a) => a.airline === data.airline)} />
+          <TripLengthChart flight={data} />
         </>
       )}
     </div>

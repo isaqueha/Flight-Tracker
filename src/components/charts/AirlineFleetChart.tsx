@@ -46,5 +46,14 @@ export default function AirlineFleetChart({ data }) {
       .call(d3.axisLeft(y).ticks(4));
   }, [data]);
 
-  return <svg ref={ref} className="w-full h-40" />;
+  return (
+    // conditionally render if there is data
+    data && data.length > 0 && (
+    <div>
+      <svg ref={ref} className="w-full h-40" /> 
+      <p className="mt-2 text-sm text-gray-400">Fleet Composition</p>
+    </div>
+    )
+  )
+  ;
 }

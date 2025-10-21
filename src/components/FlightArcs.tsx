@@ -12,7 +12,7 @@ type FlightData = {
   airline: string;
 };
 
-type FlightMesh = THREE.Object3D & { material?: { uniforms?: any }; userData?: any; children?: any[] };
+type FlightMesh = THREE.Object3D & { material?: ShaderMaterialWithUniforms; userData?: { f?: FlightData; curve?: THREE.Curve<THREE.Vector3>; id?: number }; children?: THREE.Object3D[] };
 type ShaderMaterialWithUniforms = THREE.ShaderMaterial & {
   uniforms: {
     time: { value: number };
@@ -213,7 +213,7 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
                 return (
                   <Html position={tooltipPos} scale={0.33} occlude={false}>
                     <div className="bg-black/70 text-white text-xs px-2 py-1 rounded-md shadow border border-white/20">
-                      {flight.from.code} → {flight.to.code} — {flight.airline}
+                      {flight.id} — {flight.airline}
                     </div>
                   </Html>
                 );

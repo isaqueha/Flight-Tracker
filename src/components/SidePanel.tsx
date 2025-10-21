@@ -15,7 +15,7 @@ export default function SidePanel() {
   const { type, data } = selectedItem;
 
   return (
-    <div className="p-4 bg-gray-900 text-white h-full overflow-auto">
+    <div className="p-4 bg-gray-900 text-white h-auto overflow-auto">
       <h2 className="text-lg font-semibold mb-3 capitalize">{type} details</h2>
 
       {type === "airport" && (
@@ -37,10 +37,8 @@ export default function SidePanel() {
 
       {type === "flight" && (
         <>
-          <p><strong>{data.airline}</strong></p>
+          <p><strong>{data.id} - {data.airline}</strong></p>
           <p>{data.from.code} → {data.to.code}</p>
-          <p>Altitude: {data.altitude || "unknown"}</p>
-          <p>Speed: {data.speed || "unknown"} km/h</p>
           <p className="mt-2 text-sm text-gray-400">Fleet Composition</p>
           <AirlineFleetChart data={airlines.filter((a) => a.airline === data.airline)} />
         </>

@@ -20,6 +20,8 @@ type ShaderMaterialWithUniforms = THREE.ShaderMaterial & {
     color2: { value: THREE.Color };
     opacityMin: { value: number };
     opacityMax: { value: number };
+    headSigma: { value: number };
+    headBoost: { value: number };
   };
 };
 
@@ -61,6 +63,8 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
           color2: { value: new THREE.Color("#ff00ff") },
           opacityMin: { value: 0.45 },
           opacityMax: { value: 1.0 },
+          headSigma: { value: 0.02 },
+          headBoost: { value: 0.6 },
         },
         vertexShader: `
           varying vec2 vUv;
@@ -75,13 +79,31 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
           uniform vec3 color2;
           uniform float opacityMin;
           uniform float opacityMax;
+          uniform float headSigma;
+          uniform float headBoost;
           varying vec2 vUv;
           void main() {
-            // fade is the animation phase along the tube (0..1)
-            float fade = smoothstep(0.0, 0.9, fract(vUv.x + time));
-            vec3 color = mix(color1, color2, vUv.x);
-            // keep the trail more visible by clamping to a minimum opacity
-            float alpha = mix(opacityMin, opacityMax, fade);
+            // reverse the animation so a positive progress moves from start->end
+            float phase = fract(vUv.x - time);
+
+            // fade acts as the running tail alpha (0..1)
+            float fade = smoothstep(0.0, 0.9, phase);
+
+            // create a small circular/gaussian head centered at phase==0
+            float dist = min(phase, 1.0 - phase);
+            // gaussian-like peak (sigma controls width)
+            float head = exp(- (dist * dist) / (headSigma * headSigma));
+
+            // base color along the tube
+            vec3 base = mix(color1, color2, vUv.x);
+
+            // add head brightness (adds white-ish highlight)
+            vec3 color = base + head * vec3(1.0);
+
+            // alpha mixes tail opacity then adds head boost (clamped)
+            float alpha = mix(opacityMin, opacityMax, fade) + head * headBoost;
+            alpha = clamp(alpha, 0.0, 1.0);
+
             gl_FragColor = vec4(color, alpha);
           }
         `,

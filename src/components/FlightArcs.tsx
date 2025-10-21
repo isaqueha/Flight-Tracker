@@ -118,7 +118,7 @@ export default function FlightArcs({ earthRef }: { earthRef?: React.RefObject<TH
   }, [flights]);
 
   // --- Animate trail & ✈ marker ---
-  useFrame((state, delta) => {
+  useFrame((state) => {
     const base = (state.clock.elapsedTime * 0.08) % 1;
 
     groupRef.current?.children.forEach((m, i) => {

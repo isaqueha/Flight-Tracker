@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 import { useEffect, useRef } from "react";
 
-export default function DestinationDonutChart({ destinations }) {
-  const ref = useRef();
+export default function DestinationDonutChart({ destinations }: { destinations: string[] }) {
+  const ref = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     if (!destinations || destinations.length === 0) return;
@@ -20,14 +20,23 @@ export default function DestinationDonutChart({ destinations }) {
 
     // Fake numeric data (counts per destination)
     const data = Object.fromEntries(
-      destinations.map((dest) => [dest, Math.floor(Math.random() * 100 + 20)])
+      destinations.map((dest: string) => [dest, Math.floor(Math.random() * 100 + 20)])
     );
 
     const color = d3.scaleOrdinal()
       .domain(Object.keys(data))
       .range(["#00ffff", "#00ccff", "#0099ff", "#3366ff", "#6633ff"]);
 
-    const pie = d3.pie().value((d) => d[1]);
+  type PieDatum = [string, number];
+  type LocalPieArc = {
+    data: PieDatum;
+    index?: number;
+    value?: number;
+    startAngle?: number;
+    endAngle?: number;
+    padAngle?: number;
+  };
+  const pie = d3.pie().value((d: PieDatum) => d[1]);
     const arc = d3.arc().innerRadius(radius * 0.6).outerRadius(radius);
 
     const arcs = g.selectAll("arc")
@@ -38,7 +47,7 @@ export default function DestinationDonutChart({ destinations }) {
     arcs
       .append("path")
       .attr("d", arc)
-      .attr("fill", (d) => color(d.data[0]))
+  .attr("fill", (d: LocalPieArc) => color((d.data[0] as string)))
       .attr("stroke", "#0a0a0a")
       .style("stroke-width", "1px")
       .style("opacity", 0.9);
@@ -48,11 +57,11 @@ export default function DestinationDonutChart({ destinations }) {
 
     arcs
       .append("text")
-      .attr("transform", (d) => `translate(${labelArc.centroid(d)})`)
+  .attr("transform", (d: LocalPieArc) => `translate(${labelArc.centroid(d as any)})`)
       .attr("text-anchor", "middle")
       .attr("fill", "white")
       .attr("font-size", "10px")
-      .text((d) => d.data[0]);
+  .text((d: LocalPieArc) => d.data[0] as string);
   }, [destinations]);
 
   return (

@@ -1,8 +1,10 @@
 import * as d3 from "d3";
 import { useEffect, useRef } from "react";
 
-export default function AirlineFleetChart({ data }) {
-  const ref = useRef();
+type FleetItem = { aircraft: string; count: number };
+
+export default function AirlineFleetChart({ data }: { data: FleetItem[] }) {
+  const ref = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     if (!data || data.length === 0) return;
@@ -13,15 +15,16 @@ export default function AirlineFleetChart({ data }) {
     const height = 160;
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
+    type LocalScaleBand = ReturnType<typeof d3.scaleBand>;
     const x = d3
       .scaleBand()
-      .domain(data.map((d) => d.aircraft))
+      .domain(data.map((d: FleetItem) => d.aircraft))
       .range([30, width - 10])
-      .padding(0.2);
+      .padding(0.2) as unknown as LocalScaleBand & { domain: () => string[] };
 
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.count)])
+      .domain([0, d3.max(data, (d: FleetItem) => d.count) as number])
       .range([height - 30, 10]);
 
     svg
@@ -29,16 +32,16 @@ export default function AirlineFleetChart({ data }) {
       .data(data)
       .enter()
       .append("rect")
-      .attr("x", (d) => x(d.aircraft))
-      .attr("y", (d) => y(d.count))
-      .attr("width", x.bandwidth())
-      .attr("height", (d) => height - 30 - y(d.count))
+  .attr("x", (d: FleetItem) => x(d.aircraft) as number)
+  .attr("y", (d: FleetItem) => y(d.count))
+  .attr("width", x.bandwidth())
+  .attr("height", (d: FleetItem) => height - 30 - y(d.count))
       .attr("fill", "#00ffff");
 
     svg
-      .append("g")
-      .attr("transform", `translate(0, ${height - 30})`)
-      .call(d3.axisBottom(x));
+  .append("g")
+  .attr("transform", `translate(0, ${height - 30})`)
+  .call(d3.axisBottom(x as unknown as any));
 
     svg
       .append("g")

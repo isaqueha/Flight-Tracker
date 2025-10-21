@@ -1,11 +1,11 @@
 // src/components/AirportPoints.jsx
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
-import { useThree } from "@react-three/fiber";
 import { latLonToVec3 } from "../helpers/geo";
 import { useAppContext } from "../context/AppContext";
-import airportStats from "../../public/data/airportStats.json";
+// airportStats intentionally imported elsewhere; not used here
+import type { Airport } from "../types/models";
 
 
 /**
@@ -20,25 +20,26 @@ export default function AirportPoints({
   src = "/data/airports.json",
   markerRadius = 0.008,
 }) {
-  const [airports, setAirports] = useState([]);
-  const [hovered, setHovered] = useState(null);
-  const [selectedIcao, setSelectedIcao] = useState(null);
-  const groupRef = useRef();
+  const [airports, setAirports] = useState<Airport[]>([]);
+  const [hovered, setHovered] = useState<Airport | null>(null);
+  const [selectedIcao, setSelectedIcao] = useState<string | null>(null);
+  const groupRef = useRef<THREE.Group | null>(null);
   const { setSelectedItem } = useAppContext();
 
   useEffect(() => {
     let mounted = true;
     fetch(src)
       .then((r) => r.json())
-      .then((data) => {
+      .then((data: unknown) => {
         if (!mounted) return;
         // keep only necessary fields and ensure numbers
-        const cleaned = data.map((a) => ({
-          icao: a.icao ?? a.iata ?? a.code ?? "",
-          iata: a.iata ?? "",
-          name: a.name ?? "",
-          city: a.city ?? "",
-          country: a.country ?? "",
+        const raw = (data as Array<Record<string, unknown>>) || [];
+        const cleaned: Airport[] = raw.map((a) => ({
+          icao: (a.icao as string) ?? (a.iata as string) ?? (a.code as string) ?? "",
+          iata: (a.iata as string) ?? "",
+          name: (a.name as string) ?? "",
+          city: (a.city as string) ?? "",
+          country: (a.country as string) ?? "",
           lat: Number(a.lat),
           lon: Number(a.lon),
         }));
@@ -47,7 +48,9 @@ export default function AirportPoints({
       .catch((err) => {
         console.error("Failed to load airports.json:", err);
       });
-    return () => (mounted = false);
+    return () => {
+      mounted = false;
+    };
   }, [src]);
 
   // Precompute positions (Vector3) for each airport

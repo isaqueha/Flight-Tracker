@@ -1,9 +1,10 @@
 // src/components/Globe.jsx
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef } from "react";
+import * as THREE from "three";
 
 export default function CameraAttachedLight({ intensity = 1.2, offset = [0, 0, 0.1] }) {
-  const lightRef = useRef();
+  const lightRef = useRef<THREE.DirectionalLight | null>(null);
   const { camera } = useThree();
 
   useFrame(() => {

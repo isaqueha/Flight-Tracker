@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 import { useEffect, useRef } from "react";
 
-export default function PassengerVolumeChart({ passengers = [] }) {
-  const ref = useRef();
+export default function PassengerVolumeChart({ passengers = [] }: { passengers?: number[] }) {
+  const ref = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     const svg = d3.select(ref.current);
@@ -40,27 +40,25 @@ export default function PassengerVolumeChart({ passengers = [] }) {
     // Line
     const line = d3
       .line()
-      .x((d, i) => x(i))
-      .y((d) => y(d))
+      .x((_d: number, i: number) => x(i))
+      .y((d: number) => y(d))
       .curve(d3.curveCatmullRom.alpha(0.5));
 
-    svg
+    const path = svg
       .append("path")
       .datum(passengers)
       .attr("fill", "none")
       .attr("stroke", "#00ffff")
       .attr("stroke-width", 2)
-      .attr("d", line)
-      .attr("stroke-dasharray", function () {
-        const length = this.getTotalLength();
-        return `${length} ${length}`;
-      })
-      .attr("stroke-dashoffset", function () {
-        return this.getTotalLength();
-      })
-      .transition()
-      .duration(1000)
-      .attr("stroke-dashoffset", 0);
+      .attr("d", line as unknown as string);
+
+    // Animate using path length measured from the DOM node
+    const node = path.node() as SVGPathElement | null;
+    if (node) {
+      const length = node.getTotalLength();
+  // stroke-dashoffset expects a string/number; ensure it's a number here
+  path.attr("stroke-dasharray", `${length} ${length}`).attr("stroke-dashoffset", length as number).transition().duration(1000).attr("stroke-dashoffset", 0);
+    }
 
     // Circles
     svg
@@ -68,8 +66,8 @@ export default function PassengerVolumeChart({ passengers = [] }) {
       .data(passengers)
       .enter()
       .append("circle")
-      .attr("cx", (d, i) => x(i))
-      .attr("cy", (d) => y(d))
+      .attr("cx", (_d: number, i: number) => x(i))
+      .attr("cy", (d: number) => y(d))
       .attr("r", 3)
       .attr("fill", "#00ffff");
 
@@ -78,11 +76,7 @@ export default function PassengerVolumeChart({ passengers = [] }) {
     svg
       .append("g")
       .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(
-        d3.axisBottom(x)
-          .ticks(11)
-          .tickFormat((d, i) => months[i] || "")
-      )
+      .call(d3.axisBottom(x).ticks(11).tickFormat((_: number, i: number) => months[i] || ""))
       .selectAll("text")
       .attr("font-size", "8px")
       .attr("fill", "#aaa");

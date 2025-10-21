@@ -2,6 +2,8 @@ import AirlineFleetChart from "./charts/AirlineFleetChart";
 import PassengerVolumeChart from "./charts/PassengerVolumeChart";
 import airlines from "../../public/data/airlines.json";
 import airportStats from "../../public/data/airportStats.json";
+
+type AirportStatsMap = Record<string, { passengers: number[]; popularDestinations: string[] }>;
 import { useAppContext } from "../context/AppContext";
 import DestinationDonutChart from "./charts/DestinationDonutChart";
 import TripLengthChart from "./charts/TripLengthChart";
@@ -23,12 +25,12 @@ export default function SidePanel() {
         <>
           <p><strong>{data.name}</strong> ({data.icao})</p>
           <p>{data.city}, {data.country}</p>
-          {airportStats[data.icao?.toUpperCase()] ? (
+          {((airportStats as unknown) as AirportStatsMap)[(data.icao as string)?.toUpperCase()] ? (
             <>
               <p className="mt-2 text-sm text-gray-400">Monthly passenger volume</p>
-              <PassengerVolumeChart passengers={airportStats[data.icao.toUpperCase()].passengers} />
+              <PassengerVolumeChart passengers={((airportStats as unknown) as AirportStatsMap)[(data.icao as string).toUpperCase()].passengers} />
 
-              <DestinationDonutChart destinations={airportStats[data.icao.toUpperCase()].popularDestinations} />
+              <DestinationDonutChart destinations={((airportStats as unknown) as AirportStatsMap)[(data.icao as string).toUpperCase()].popularDestinations} />
             </>
           ) : (
             <p className="text-gray-500 text-sm mt-2">No data available for this airport.</p>

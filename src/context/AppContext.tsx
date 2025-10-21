@@ -1,9 +1,17 @@
 import { createContext, useContext, useState } from "react";
+import type { ReactNode } from "react";
 
-const AppContext = createContext();
+type SelectedItem = { type: "flight" | "airport"; data: any } | null;
 
-export const AppProvider = ({ children }) => {
-  const [selectedItem, setSelectedItem] = useState(null); // { type: 'flight' | 'airport', data: {} }
+type AppContextType = {
+  selectedItem: SelectedItem;
+  setSelectedItem: (v: SelectedItem) => void;
+};
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [selectedItem, setSelectedItem] = useState<SelectedItem>(null); // { type: 'flight' | 'airport', data: {} }
 
   return (
     <AppContext.Provider value={{ selectedItem, setSelectedItem }}>
@@ -13,4 +21,8 @@ export const AppProvider = ({ children }) => {
 };
 
 // Custom hook for convenience
-export const useAppContext = () => useContext(AppContext);
+export const useAppContext = (): AppContextType => {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useAppContext must be used within AppProvider");
+  return ctx;
+};
